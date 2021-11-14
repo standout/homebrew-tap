@@ -9,13 +9,16 @@ class ElasticsearchAT56 < Formula
     depends_on "gradle" => :build
   end
 
-  bottle :unneeded
   keg_only :versioned_formula
 
-  #depends_on :java => "1.8+"
+  depends_on 'homebrew/homebrew-core/openjdk@8'
 
   def cluster_name
     "elasticsearch_#{ENV["USER"]}"
+  end
+
+  def java_home_path
+    Dir.glob(File.expand_path("#{prefix}/../../../Homebrew/Cellar/openjdk@8/*")).first
   end
 
   def install
@@ -64,6 +67,11 @@ class ElasticsearchAT56 < Formula
 
     bin.write_exec_script Dir[libexec/"bin/elasticsearch"]
     bin.write_exec_script Dir[libexec/"bin/elasticsearch-plugin"]
+
+    # Install plugins
+    %w[analysis-icu analysis-phonetic].each do |plugin|
+      system "#{libexec}/bin/elasticsearch-plugin", "install", "--batch", plugin
+    end
   end
 
   def post_install
@@ -104,6 +112,8 @@ class ElasticsearchAT56 < Formula
           </array>
           <key>EnvironmentVariables</key>
           <dict>
+            <key>JAVA_HOME</key>
+            <string>#{java_home_path}</string>
           </dict>
           <key>RunAtLoad</key>
           <true/>
